@@ -16,5 +16,5 @@ func (a *App) Handler() http.Handler {
 }
 
 func (a *App) index(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello, World!"))
+	w.Write([]byte("Hello, World 123!"))
 }
