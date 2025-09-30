@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/kmonty-catamaran/deps-weather-webapp/pkg/app"
+	ipweather "github.com/squee1945/deps-ip-weather"
 )
 
 const (
@@ -18,9 +19,19 @@ func main() {
 		port = defaultPort
 	}
 
-	a := app.New()
+	ipw, err := ipweather.New()
+	if err != nil {
+		exit("ipweather.New(): %v", err)
+	}
+
+	a := app.New(ipw)
 
 	if err := http.ListenAndServe(":"+port, a.Handler()); err != nil {
-		log.Printf("Error: %s\n", err)
+		exit("http.ListenAndServe(): %v", err)
 	}
+}
+
+func exit(f string, args ...any) {
+	log.Printf("Error: "+f+"\n", args...)
+	os.Exit(1)
 }
