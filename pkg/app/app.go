@@ -5,6 +5,8 @@ import (
 	"log"
 	"net"
 	"net/http"
+
+	ipweather "github.com/squee1945/deps-ip-weather"
 )
 
 type App struct {
@@ -12,7 +14,7 @@ type App struct {
 }
 
 type WeatherGetter interface {
-	GetWeather(ip string) (string, error)
+	GetWeather(ip string) (*ipweather.WeatherDetails, error)
 }
 
 func New(wg WeatherGetter) *App {
@@ -36,14 +38,19 @@ func (a *App) index(w http.ResponseWriter, r *http.Request) {
 		host = ip.String()
 	}
 
-	weather, err := a.wg.GetWeather(host)
+	details, err := a.wg.GetWeather(host)
 	if err != nil {
 		a.serverError(w, "ipw.GetWeather(): %v", err)
 		return
 	}
+	weather := formatWeather(details)
 	log.Printf("Weather: %q\n", weather)
 
 	fmt.Fprintf(w, "Weather for %q: %s", host, weather)
+}
+
+func formatWeather(details *ipweather.WeatherDetails) string {
+	return fmt.Sprintf("%s, %s, %s: %.0fC, %s, %d%% humidity", details.City, details.Region, details.Country, details.Temperature, details.Conditions, details.Humidity)
 }
 
 func (a *App) serverError(w http.ResponseWriter, f string, args ...any) {
