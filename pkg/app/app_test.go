@@ -5,11 +5,20 @@ import (
 	"net"
 	"net/http/httptest"
 	"testing"
+
+	ipweather "github.com/squee1945/deps-ip-weather"
 )
 
 func TestAppIndex(t *testing.T) {
-	weather := "stormy"
-	a := New(&fakeWeatherGetter{weather: weather})
+	details := &ipweather.WeatherDetails{
+		City:        "Mountain View",
+		Region:      "CA",
+		Country:     "US",
+		Temperature: 20.0,
+		Conditions:  "Partly Cloudy",
+		Humidity:    60,
+	}
+	a := New(&fakeWeatherGetter{details: details})
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/", nil)
 
@@ -22,17 +31,17 @@ func TestAppIndex(t *testing.T) {
 	if err != nil {
 		t.Fatalf("net.SplitHostPort(): %v", err)
 	}
-	want := fmt.Sprintf("Weather for %q: %s", host, weather)
+	want := fmt.Sprintf("Weather for %q: %s", host, formatWeather(details))
 	if got := w.Body.String(); got != want {
 		t.Errorf("Incorrect body got %q, want %q", got, want)
 	}
 }
 
 type fakeWeatherGetter struct {
-	weather string
+	details *ipweather.WeatherDetails
 	err     error
 }
 
-func (f *fakeWeatherGetter) GetWeather(ip string) (string, error) {
-	return f.weather, f.err
+func (f *fakeWeatherGetter) GetWeather(ip string) (*ipweather.WeatherDetails, error) {
+	return f.details, f.err
 }
